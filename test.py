@@ -4,7 +4,7 @@ import librosa
 import os
 import av
 
-def read_video_pyav(container, indices):
+def read_video_pyav(container):
     '''
     Decode the video with PyAV decoder.
     Args:
@@ -15,44 +15,20 @@ def read_video_pyav(container, indices):
     '''
     frames = []
     container.seek(0)
-    start_index = indices[0]
-    end_index = indices[-1]
-    for i, frame in enumerate(container.decode(video=0)):
-        if i > end_index:
-            break
-        if i >= start_index and i in indices:
-            frames.append(frame)
+    for frame in container.decode(video=0):
+        frames.append(frame)
     return np.stack([x.to_ndarray(format="rgb24") for x in frames])
-
-
-def sample_frame_indices(clip_len, frame_sample_rate, seg_len):
-    '''
-    Sample a given number of frame indices from the video.
-    Args:
-        clip_len (`int`): Total number of frames to sample.
-        frame_sample_rate (`int`): Sample every n-th frame.
-        seg_len (`int`): Maximum allowed index of sample's last frame.
-    Returns:
-        indices (`list[int]`): List of sampled frame indices
-    '''
-    converted_len = int(clip_len * frame_sample_rate)
-    end_idx = np.random.randint(converted_len, seg_len)
-    start_idx = end_idx - converted_len
-    indices = np.linspace(start_idx, end_idx, num=clip_len)
-    indices = np.clip(indices, start_idx, end_idx - 1).astype(np.int64)
-    return indices
 
 
 sample_rate = 16000
 num_frames = 120
 
-audio_file_path = os.getcwd() + "/datasets/base_dataset/Mazda3_base/Mazda3_70.wav"
-video_file_path = os.getcwd() + "/datasets/base_dataset/Mazda3_base/Mazda3_70.MP4"
+audio_file_path = os.getcwd() + "/datasets/4_second_base_dataset_misaligned/Mazda3_processed_audio4seconds/Mazda3_30_offset-2.wav"
+video_file_path = os.getcwd() + "/datasets/4_second_base_dataset_misaligned/Mazda3_processed_video4seconds/Mazda3_30.MP4"
 
 container = av.open(video_file_path)
 
-indices = sample_frame_indices(clip_len=120, frame_sample_rate=1, seg_len=container.streams.video[0].frames)
-video = read_video_pyav(container=container, indices=indices)
+video = read_video_pyav(container=container)
 
 audio, sample_rate = librosa.load(audio_file_path, sr=sample_rate)
 
