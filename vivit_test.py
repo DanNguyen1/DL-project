@@ -59,8 +59,8 @@ video = read_video_pyav(container=container, indices=indices)
 image_processor = VivitImageProcessor.from_pretrained("google/vivit-b-16x2-kinetics400")
 
 config = VivitConfig(
-            hidden_size=600,
-            num_frames=64
+            hidden_size=300,
+            num_frames=120
         )
 
 model = VivitModel(config)
@@ -70,10 +70,14 @@ inputs = image_processor(list(video), return_tensors="pt")
 
 # forward pass
 outputs = model(**inputs, output_hidden_states=True)
-last_hidden_states = outputs.last_hidden_state  # (batch_size, num_patches, hidden_size)
-patch_tokens = last_hidden_states[:, 1:, :]
+last_hidden_state = outputs.last_hidden_state  # (batch_size, num_patches, hidden_size)
 
-num_patches_per_frame = 196
-patch_tokens = patch_tokens.view(1, 32, num_patches_per_frame, 600)
-frame_embeddings = patch_tokens.mean(dim=2)     # [1, 32, 300]
-print(frame_embeddings.shape)
+#vidoe embed is the output of the CLS token in the last hidden state
+video_embed = last_hidden_state[:, -1, :]
+print(video_embed.shape)
+# patch_tokens = last_hidden_states[:, 1:, :]
+
+# num_patches_per_frame = 196
+# patch_tokens = patch_tokens.view(1, 60, num_patches_per_frame, 600)
+# frame_embeddings = patch_tokens.mean(dim=2)     # [1, 32, 300]
+# print(frame_embeddings.shape)
