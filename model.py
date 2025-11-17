@@ -30,10 +30,7 @@ class Model(nn.Module):
         self.audio_model = ASTModel(audio_config)
 
         self.image_processor = VivitImageProcessor.from_pretrained(self.video_model)
-        video_config = VivitConfig(
-            hidden_size=hidden_size,
-            num_frames=num_frames
-        )
+
         video_config = VivitConfig(
             hidden_size=self.hidden_size,
             num_frames=self.num_frames,
