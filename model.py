@@ -10,13 +10,20 @@ class Model(nn.Module):
                  hidden_size=300,
                  video_model="google/vivit-b-16x2-kinetics400",
                  audio_model="MIT/ast-finetuned-audioset-10-10-0.4593",
-                 sample_rate=16000):
+                 sample_rate=16000,
+                 num_hidden_layers=4,
+                 num_attention_heads=4,
+                 intermediate_size=2000,
+                 ):
         super(Model, self).__init__()
         self.num_frames = num_frames
         self.hidden_size = hidden_size
         self.video_model = video_model
         self.audio_model = audio_model
         self.sample_rate = sample_rate
+        self.num_hidden_layers = num_hidden_layers
+        self.num_attention_heads = num_attention_heads
+        self.intermediate_size = intermediate_size
 
         self.audio_feature_extractor = AutoFeatureExtractor.from_pretrained(self.audio_model)
         audio_config = ASTConfig(hidden_size=300)
@@ -26,6 +33,13 @@ class Model(nn.Module):
         video_config = VivitConfig(
             hidden_size=hidden_size,
             num_frames=num_frames
+        )
+        video_config = VivitConfig(
+            hidden_size=self.hidden_size,
+            num_frames=self.num_frames,
+            num_hidden_layers=self.num_hidden_layers,
+            num_attention_heads=self.num_attention_heads,
+            intermediate_size=self.intermediate_size,
         )
         self.video_model = VivitModel(video_config)
 

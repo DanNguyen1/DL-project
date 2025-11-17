@@ -22,6 +22,9 @@ def read_video_pyav(container):
 
 sample_rate = 16000
 num_frames = 120
+num_hidden_layers = 4
+num_attention_heads = 4
+intermediate_size = 2000
 
 audio_file_path = os.getcwd() + "/datasets/4_second_base_dataset_misaligned/Mazda3_processed_audio4seconds/Mazda3_30_offset-2.wav"
 video_file_path = os.getcwd() + "/datasets/4_second_base_dataset_misaligned/Mazda3_processed_video4seconds/Mazda3_30.MP4"
@@ -32,7 +35,13 @@ video = read_video_pyav(container=container)
 
 audio, sample_rate = librosa.load(audio_file_path, sr=sample_rate)
 
-model = Model(num_frames=num_frames, sample_rate=sample_rate)
+model = Model(
+    num_frames=num_frames,
+    sample_rate=sample_rate,
+    num_hidden_layers=num_hidden_layers,
+    num_attention_heads=num_attention_heads,
+    intermediate_size=intermediate_size,
+)
 
 output = model(video, audio)
 

@@ -60,7 +60,10 @@ image_processor = VivitImageProcessor.from_pretrained("google/vivit-b-16x2-kinet
 
 config = VivitConfig(
             hidden_size=300,
-            num_frames=120
+            num_frames=120,
+            num_hidden_layers=4,
+            num_attention_heads=4,
+            intermediate_size=2000,
         )
 
 model = VivitModel(config)
