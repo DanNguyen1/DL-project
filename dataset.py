@@ -3,8 +3,8 @@ import re
 import numpy as np
 import pandas as pd
 
-AUDIO_DIR = os.getcwd() + "/datasets/4_second_base_dataset_misaligned/Mazda3_processed_audio4seconds"
-VIDEO_DIR = os.getcwd() + "/datasets/4_second_base_dataset_misaligned/Mazda3_processed_video4seconds"
+AUDIO_DIR = os.getcwd() + "/datasets/processed_dataset_4secs/processed_audio_4secs"
+VIDEO_DIR = os.getcwd() + "/datasets/processed_dataset_4secs/processed_video_4secs"
 
 def create_df_from_dataset():
     audio_files = os.listdir(AUDIO_DIR)
