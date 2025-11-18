@@ -1,7 +1,8 @@
 from model import Model
+from dataset import create_df_from_dataset
 import numpy as np
-import librosa
 import os
+import librosa
 import av
 
 def read_video_pyav(container):
@@ -20,29 +21,30 @@ def read_video_pyav(container):
     return np.stack([x.to_ndarray(format="rgb24") for x in frames])
 
 
-sample_rate = 16000
-num_frames = 120
-num_hidden_layers = 4
-num_attention_heads = 4
-intermediate_size = 2000
 
-audio_file_path = os.getcwd() + "/datasets/4_second_base_dataset_misaligned/Mazda3_processed_audio4seconds/Mazda3_30_offset-2.wav"
-video_file_path = os.getcwd() + "/datasets/4_second_base_dataset_misaligned/Mazda3_processed_video4seconds/Mazda3_30.MP4"
+if __name__ == '__main__':
+    sample_rate = 16000
+    num_frames = 120
+    num_hidden_layers = 4
+    num_attention_heads = 4
+    intermediate_size = 2000
 
-container = av.open(video_file_path)
+    model = Model(
+        num_frames=num_frames,
+        sample_rate=sample_rate,
+        num_hidden_layers=num_hidden_layers,
+        num_attention_heads=num_attention_heads,
+        intermediate_size=intermediate_size,
+    )
 
-video = read_video_pyav(container=container)
+    dataset = create_df_from_dataset()
 
-audio, sample_rate = librosa.load(audio_file_path, sr=sample_rate)
+    for _, row in dataset.iterrows():
+        audio, _ = librosa.load(row['audio'], sr=sample_rate)
+        
+        container = av.open(row['video'])
+        video = read_video_pyav(container)
 
-model = Model(
-    num_frames=num_frames,
-    sample_rate=sample_rate,
-    num_hidden_layers=num_hidden_layers,
-    num_attention_heads=num_attention_heads,
-    intermediate_size=intermediate_size,
-)
+        output = model(video, audio)
 
-output = model(video, audio)
-
-print(output)
+        print(output)
