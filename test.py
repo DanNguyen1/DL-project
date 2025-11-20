@@ -1,7 +1,10 @@
 from model import Model
+from datasets import Dataset
 from dataset import create_df_from_dataset
 import numpy as np
-import os
+import torch
+import torch.optim as optim
+import torch.nn as nn
 import librosa
 import av
 
@@ -21,6 +24,33 @@ def read_video_pyav(container):
     return np.stack([x.to_ndarray(format="rgb24") for x in frames])
 
 
+def train_loop(model: torch.nn.Module, train_set, val_set, epochs):
+    criterion = nn.BCELoss() # use of "sum" is crucial for accurate computation of perplexity. default is "avg." 
+    optimizer = optim.Adam(model.parameters())
+
+    percent_epoch = int(len(train_set)/2) # report stats every half epoch
+
+    for epoch in range(epochs):
+        print(f"epoch {epoch}:")
+        train_set = train_set.shuffle()
+        for i, ex in enumerate(train_set):
+            if (i + 1) % percent_epoch == 0:
+                print("half epoch!")
+            
+            audio, _ = librosa.load(ex['audio'], sr=sample_rate)
+
+            container = av.open(ex['video'])
+            video = read_video_pyav(container)
+
+            output = model(video, audio).squeeze(-1)
+
+            target = torch.tensor([ex['label']], dtype=torch.float)
+
+            model.zero_grad()
+            loss = criterion(output, target)
+            loss.backward()
+            optimizer.step()
+
 
 if __name__ == '__main__':
     sample_rate = 16000
@@ -37,14 +67,20 @@ if __name__ == '__main__':
         intermediate_size=intermediate_size,
     )
 
-    dataset = create_df_from_dataset()
+    VAL_SIZE = 0.15
+    TEST_SIZE = 0.15
 
-    for _, row in dataset.iterrows():
-        audio, _ = librosa.load(row['audio'], sr=sample_rate)
-        
-        container = av.open(row['video'])
-        video = read_video_pyav(container)
+    dataset = Dataset.from_pandas(create_df_from_dataset())
 
-        output = model(video, audio)
+    dataset = dataset.train_test_split(test_size=TEST_SIZE)
 
-        print(output)
+    train_dataset = dataset['train']
+    # also split for val set
+    train_dataset = train_dataset.train_test_split(test_size=(VAL_SIZE / (1 - TEST_SIZE)))
+    
+
+    val_dataset = train_dataset['test']
+    train_dataset = train_dataset['train']
+    test_dataset = dataset['test']
+
+    train_loop(model, train_set=train_dataset, val_set=val_dataset, epochs=50)
