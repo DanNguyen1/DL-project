@@ -26,7 +26,7 @@ class Model(nn.Module):
         self.intermediate_size = intermediate_size
 
         self.audio_feature_extractor = AutoFeatureExtractor.from_pretrained(self.audio_model)
-        audio_config = ASTConfig(hidden_size=300)
+        audio_config = ASTConfig(hidden_size=self.hidden_size)
         self.audio_model = ASTModel(audio_config)
 
         self.image_processor = VivitImageProcessor.from_pretrained(self.video_model)
@@ -58,14 +58,13 @@ class Model(nn.Module):
 
         # video embed
         video_outputs = self.video_model(**video_input, output_hidden_states=True)
-        video_embed = video_outputs.last_hidden_state[0, 0, :]
+        video_embed = video_outputs.pooler_output
 
         # audio embed
-
         audio_outputs = self.audio_model(**audio_input, output_hidden_states=True)
-        audio_embed = audio_outputs.last_hidden_state[0, 0, :]
+        audio_embed = audio_outputs.pooler_output
 
         # classification output layer
-        video_audio_embed = torch.concat((video_embed, audio_embed), dim=0)
+        video_audio_embed = torch.concat((video_embed, audio_embed), dim=1)
 
         return self.classifier(video_audio_embed)
