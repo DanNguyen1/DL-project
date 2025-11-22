@@ -7,6 +7,7 @@ import torch.optim as optim
 import torch.nn as nn
 import librosa
 import av
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 def read_video_pyav(container):
     '''
@@ -35,22 +36,39 @@ def batchify(batch):
     
     return videos, audios
 
+@torch.no_grad()
+def evaluate(model: torch.nn.Module, data):
+    model.eval()
+    videos, audios = batchify(data)
+
+    output = model(videos, audios).squeeze(-1).numpy()
+
+    target = np.array(data['label'])
+
+    accuracy = accuracy_score(target, output)
+
+    results = precision_recall_fscore_support(target, output)
+
+    precision = results[0]
+    recall = results[1]
+    f1 = results[2]
+
+    print(f"accuracy: {accuracy}, precision: {precision}, recall: {recall}, f1: {f1}")
+
+    
+
 
 
 def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=2):
     criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters())
 
-    percent_epoch = int(len(train_set)/2) # report stats every half epoch
-
     for epoch in range(epochs):
         print(f"epoch {epoch}:")
+        model.train()
         train_set = train_set.shuffle()
-        batched_train = train_set.batch(batch_size=2)
+        batched_train = train_set.batch(batch_size=batch_size)
         for i, batch in enumerate(batched_train):
-            if (i + 1) % percent_epoch == 0:
-                print("half epoch!")
-
             videos, audios = batchify(batch)
 
             output = model(videos, audios).squeeze(-1)
@@ -61,15 +79,17 @@ def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=2)
             loss = criterion(output, target)
             loss.backward()
             optimizer.step()
+            evaluate(model, val_set)
             exit(0)
+
 
 
 if __name__ == '__main__':
     sample_rate = 16000
     num_frames = 120
-    num_hidden_layers = 4
-    num_attention_heads = 4
-    intermediate_size = 2000
+    num_hidden_layers = 1
+    num_attention_heads = 1
+    intermediate_size = 10
 
     model = Model(
         num_frames=num_frames,
