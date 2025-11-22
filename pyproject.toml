@@ -1,0 +1,22 @@
+[project]
+name = "DL_project"
+version = "0.0.1"
+
+dependencies = [
+    "torch",
+    "datasets",
+    "librosa",
+    "av",
+    "transformers",
+    "numpy",
+    "matplotlib",
+    "pandas",
+    "ipdb",
+    "ruff",
+    "seaborn",
+    "tqdm",
+    "scikit-learn",
+]
+
+[tool.hatch.envs.default.env-vars]
+PIP_EXTRA_INDEX_URL = "https://download.pytorch.org/whl/cu126"
