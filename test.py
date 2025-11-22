@@ -25,7 +25,7 @@ def read_video_pyav(container):
 
 
 def train_loop(model: torch.nn.Module, train_set, val_set, epochs):
-    criterion = nn.BCELoss() # use of "sum" is crucial for accurate computation of perplexity. default is "avg." 
+    criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters())
 
     percent_epoch = int(len(train_set)/2) # report stats every half epoch
@@ -50,6 +50,7 @@ def train_loop(model: torch.nn.Module, train_set, val_set, epochs):
             loss = criterion(output, target)
             loss.backward()
             optimizer.step()
+            exit(0)
 
 
 if __name__ == '__main__':
