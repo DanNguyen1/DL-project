@@ -1,6 +1,7 @@
 import av
 import numpy as np
 import os
+import torch
 
 from transformers import VivitConfig, VivitImageProcessor, VivitModel
 from huggingface_hub import hf_hub_download
@@ -53,8 +54,11 @@ file_path = os.getcwd() + "/datasets/base_dataset/Mazda3_base/Mazda3_70.MP4"
 container = av.open(file_path)
 
 # sample 32 frames
-indices = sample_frame_indices(clip_len=120, frame_sample_rate=1, seg_len=container.streams.video[0].frames)
-video = read_video_pyav(container=container, indices=indices)
+indices_1 = sample_frame_indices(clip_len=120, frame_sample_rate=1, seg_len=container.streams.video[0].frames)
+video_1 = read_video_pyav(container=container, indices=indices_1)
+
+indices_2 = sample_frame_indices(clip_len=120, frame_sample_rate=1, seg_len=container.streams.video[0].frames)
+video_2 = read_video_pyav(container=container, indices=indices_1)
 
 image_processor = VivitImageProcessor.from_pretrained("google/vivit-b-16x2-kinetics400")
 
@@ -69,10 +73,13 @@ config = VivitConfig(
 model = VivitModel(config)
 
 # prepare video for the model
-inputs = image_processor(list(video), return_tensors="pt")
+inputs_1 = image_processor(list(video_1), return_tensors="pt")
+inputs_2 = image_processor(list(video_2), return_tensors="pt")
+
+inputs = torch.concat((inputs_1['pixel_values'], inputs_2['pixel_values']), dim=0)
 
 # forward pass
-outputs = model(**inputs, output_hidden_states=True)
+outputs = model(inputs, output_hidden_states=True)
 last_hidden_state = outputs.last_hidden_state  # (batch_size, num_patches, hidden_size)
 
 #vidoe embed is the output of the CLS token in the last hidden state
