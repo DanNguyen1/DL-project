@@ -52,16 +52,26 @@ class Model(nn.Module):
 
     def forward(self, video, audio):
         # create inputs for models
-        video_input = self.image_processor(list(video), return_tensors="pt")
-        audio_input = self.audio_feature_extractor(audio, sampling_rate=self.sample_rate, return_tensors='pt') 
+        video_input = []
+        audio_input = []
+
+        for i in range(len(video)):
+            video_tensor = self.image_processor(list(video[i]), return_tensors="pt")['pixel_values']
+            audio_tensor = self.audio_feature_extractor(audio[i], sampling_rate=self.sample_rate, return_tensors='pt') ['input_values']
+
+            video_input.append(video_tensor)
+            audio_input.append(audio_tensor)
+        
+        video_input = torch.concat(video_input, dim=0)
+        audio_input = torch.concat(audio_input, dim=0)
 
 
         # video embed
-        video_outputs = self.video_model(**video_input, output_hidden_states=True)
+        video_outputs = self.video_model(video_input, output_hidden_states=True)
         video_embed = video_outputs.pooler_output
 
         # audio embed
-        audio_outputs = self.audio_model(**audio_input, output_hidden_states=True)
+        audio_outputs = self.audio_model(audio_input, output_hidden_states=True)
         audio_embed = audio_outputs.pooler_output
 
         # classification output layer

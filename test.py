@@ -23,8 +23,21 @@ def read_video_pyav(container):
         frames.append(frame)
     return np.stack([x.to_ndarray(format="rgb24") for x in frames])
 
+def batchify(batch):
+    videos, audios = [], []
+    for i in range(len(batch['audio'])):
+        audio, _ = librosa.load(batch['audio'][i], sr=sample_rate)
+        audios.append(audio)
 
-def train_loop(model: torch.nn.Module, train_set, val_set, epochs):
+        container = av.open(batch['video'][i])
+        video = read_video_pyav(container)
+        videos.append(video)
+    
+    return videos, audios
+
+
+
+def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=2):
     criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters())
 
@@ -33,18 +46,16 @@ def train_loop(model: torch.nn.Module, train_set, val_set, epochs):
     for epoch in range(epochs):
         print(f"epoch {epoch}:")
         train_set = train_set.shuffle()
-        for i, ex in enumerate(train_set):
+        batched_train = train_set.batch(batch_size=2)
+        for i, batch in enumerate(batched_train):
             if (i + 1) % percent_epoch == 0:
                 print("half epoch!")
-            
-            audio, _ = librosa.load(ex['audio'], sr=sample_rate)
 
-            container = av.open(ex['video'])
-            video = read_video_pyav(container)
+            videos, audios = batchify(batch)
 
-            output = model(video, audio).squeeze(-1)
+            output = model(videos, audios).squeeze(-1)
 
-            target = torch.tensor([ex['label']], dtype=torch.float)
+            target = torch.tensor(batch['label'], dtype=torch.float)
 
             model.zero_grad()
             loss = criterion(output, target)
@@ -82,6 +93,6 @@ if __name__ == '__main__':
 
     val_dataset = train_dataset['test']
     train_dataset = train_dataset['train']
-    test_dataset = dataset['test']
+    test_dataset = dataset['test']    
 
     train_loop(model, train_set=train_dataset, val_set=val_dataset, epochs=50)
