@@ -79,8 +79,7 @@ def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=2)
             loss = criterion(output, target)
             loss.backward()
             optimizer.step()
-            evaluate(model, val_set)
-            exit(0)
+        evaluate(model, val_set)
 
 
 
