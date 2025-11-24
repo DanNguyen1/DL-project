@@ -8,6 +8,7 @@ import torch.nn as nn
 import librosa
 import av
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
+from tqdm import tqdm
 
 def read_video_pyav(container):
     '''
@@ -65,7 +66,7 @@ def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=1)
         model.train()
         train_set = train_set.shuffle()
         batched_train = train_set.batch(batch_size=batch_size)
-        for i, batch in enumerate(batched_train):
+        for batch in tqdm(batched_train):
             videos, audios = batchify(batch)
 
             output = model(videos, audios).squeeze(-1)
@@ -111,7 +112,7 @@ if __name__ == '__main__':
     train_dataset = train_dataset['train']
     test_dataset = dataset['test']    
 
-    train_loop(model, train_set=train_dataset, val_set=val_dataset, epochs=20, batch_size=4)
+    train_loop(model, train_set=train_dataset, val_set=val_dataset, epochs=10, batch_size=4)
 
     print("test results:")
     evaluate(model, test_dataset)
