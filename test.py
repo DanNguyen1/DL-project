@@ -7,7 +7,7 @@ import torch.optim as optim
 import torch.nn as nn
 import librosa
 import av
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
 
 def read_video_pyav(container):
     '''
@@ -43,23 +43,20 @@ def evaluate(model: torch.nn.Module, data):
 
     output = model(videos, audios).squeeze(-1).numpy()
 
+    output = np.round(output)
+
     target = np.array(data['label'])
 
     accuracy = accuracy_score(target, output)
-
-    results = precision_recall_fscore_support(target, output)
-
-    precision = results[0]
-    recall = results[1]
-    f1 = results[2]
+    precision = precision_score(target, output)
+    recall = recall_score(target, output)
+    f1 = f1_score(target, output)
 
     print(f"accuracy: {accuracy}, precision: {precision}, recall: {recall}, f1: {f1}")
 
-    
 
 
-
-def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=2):
+def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=1):
     criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters())
 
@@ -114,4 +111,7 @@ if __name__ == '__main__':
     train_dataset = train_dataset['train']
     test_dataset = dataset['test']    
 
-    train_loop(model, train_set=train_dataset, val_set=val_dataset, epochs=50)
+    train_loop(model, train_set=train_dataset, val_set=val_dataset, epochs=20, batch_size=4)
+
+    print("test results:")
+    evaluate(model, test_dataset)
