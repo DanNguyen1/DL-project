@@ -42,9 +42,7 @@ def evaluate(model: torch.nn.Module, data):
     model.eval()
     videos, audios = batchify(data)
 
-    output = model(videos, audios).squeeze(-1).numpy()
-
-    output = np.round(output)
+    output = torch.round(torch.sigmoid(model(videos, audios)).squeeze(-1)).numpy()
 
     target = np.array(data['label'])
 
@@ -58,8 +56,8 @@ def evaluate(model: torch.nn.Module, data):
 
 
 def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=1):
-    criterion = nn.BCELoss()
-    optimizer = optim.Adam(model.parameters())
+    criterion = nn.BCEWithLogitsLoss()
+    optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
     for epoch in range(epochs):
         print(f"epoch {epoch}:")
@@ -71,9 +69,10 @@ def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=1)
 
             output = model(videos, audios).squeeze(-1)
 
+
             target = torch.tensor(batch['label'], dtype=torch.float)
 
-            model.zero_grad()
+            optimizer.zero_grad()
             loss = criterion(output, target)
             loss.backward()
             optimizer.step()
@@ -84,9 +83,9 @@ def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=1)
 if __name__ == '__main__':
     sample_rate = 16000
     num_frames = 120
-    num_hidden_layers = 1
-    num_attention_heads = 1
-    intermediate_size = 10
+    num_hidden_layers = 6
+    num_attention_heads = 3
+    intermediate_size = 300
 
     model = Model(
         num_frames=num_frames,
@@ -112,7 +111,7 @@ if __name__ == '__main__':
     train_dataset = train_dataset['train']
     test_dataset = dataset['test']    
 
-    train_loop(model, train_set=train_dataset, val_set=val_dataset, epochs=10, batch_size=4)
+    train_loop(model, train_set=train_dataset, val_set=val_dataset, epochs=20, batch_size=50)
 
     print("test results:")
     evaluate(model, test_dataset)

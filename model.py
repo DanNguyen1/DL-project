@@ -44,10 +44,7 @@ class Model(nn.Module):
         self.classifier = nn.Sequential(
             nn.Linear(hidden_size * 2, hidden_size * 4),
             nn.ReLU(),
-            nn.Linear(hidden_size * 4, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, 1),
-            nn.Sigmoid()
+            nn.Linear(hidden_size * 4, 1)
         )
 
     def forward(self, video, audio):
@@ -77,4 +74,6 @@ class Model(nn.Module):
         # classification output layer
         video_audio_embed = torch.concat((video_embed, audio_embed), dim=1)
 
-        return self.classifier(video_audio_embed)
+        res = self.classifier(video_audio_embed)
+
+        return res
