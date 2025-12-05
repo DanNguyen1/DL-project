@@ -56,10 +56,10 @@ nvidia-smi
 Utility file for parsing the files in our dataset, associating pairs of video and audio files with each other, and labelling them. Puts **ONLY** the audio and video **FILE NAMES** and labels into a Pandas dataframe for later processing.
 
 - ast_test.py
-Initial testing file to test the capabilities of (Audio Spectrogram Transformer)[https://huggingface.co/docs/transformers/en/model_doc/audio-spectrogram-transformer]. Runs AST on a sample audio file from our dataset and produces an embedding.
+Initial testing file to test the capabilities of [Audio Spectrogram Transformer](https://huggingface.co/docs/transformers/en/model_doc/audio-spectrogram-transformer). Runs AST on a sample audio file from our dataset and produces an embedding.
 
 - vivit_test.py
-Initial testing file to test the capabilities of (Video Vision Transformer)[https://huggingface.co/docs/transformers/en/model_doc/vivit]. Runs ViViT on a samplpe video file from our dataset and produces an embedding.
+Initial testing file to test the capabilities of [Video Vision Transformer](https://huggingface.co/docs/transformers/en/model_doc/vivit). Runs ViViT on a samplpe video file from our dataset and produces an embedding.
 
 - model.py
 Our main model. Sets up a torch-based module for learning video-audio alignment through pairs of video and audio files. Does not perform initial vectorization of video and audio data, but will perform AST and ViViT specific processing before passing it through each individual model. The forward method will produce video and audio embeddings through AST and ViViT, respectively, concatenate the embedding pairs, and pass the concatenated embeddings through a feedforward network to produce a binary classification.
