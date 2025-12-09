@@ -90,16 +90,11 @@ def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=1)
     return model.state_dict(), accuracies, f1s, losses
 
 
-def save_training_res(training_path):
+def save_training_res(training_path, model_state_dict, res_dict):
     """Save training results to disk."""
     model_path = training_path / "model_checkpoint.pt"
     torch.save(model_state_dict, model_path)
     print(f"Model checkpoint saved at: `{model_path.absolute()}`")
-    res_dict = {
-        "accuracies": accuracies,
-        "f1s": f1s,
-        "losses": losses
-    }
     results_path = training_path / "res.tar"
     torch.save(res_dict, results_path)
     print(f"Training results saved at: `{results_path.absolute()}`")
@@ -145,7 +140,23 @@ if __name__ == '__main__':
         epochs=epochs,
         batch_size=batch_size
     )
-    save_training_res(training_path=training_path)
+
+    res_dict = {
+        "accuracies": accuracies,
+        "f1s": f1s,
+        "losses": losses,
+        "num_frames": num_frames,
+        "sample_rate": sample_rate,
+        "num_hidden_layers": num_hidden_layers,
+        "num_attention_heads": num_attention_heads,
+        "intermediate_size": intermediate_size,       
+        "epochs": epochs,
+    }
+    save_training_res(
+        training_path=training_path,
+        model_state_dict=model_state_dict,
+        res_dict=res_dict
+    )
 
     print("Test results:")
     evaluate(model, test_dataset)
