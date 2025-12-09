@@ -18,11 +18,11 @@ We highly recommend setting up [Python virtual environment](https://docs.python.
 cd DL-project
 ```
 
-2. Set up a virtual enviroment (OPTIONAL, BUT RECOMMENDED!)
+2. Set up a virtual environment (OPTIONAL, BUT RECOMMENDED!)
 ```bash
 python3 -m venv venv/
 ```
-3. Activate the virtual enviroment (OPTIONAL, BUT RECOMMENDED!)
+3. Activate the virtual environment (OPTIONAL, BUT RECOMMENDED!)
 ```bash
 source venv/bin/activate
 ```

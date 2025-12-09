@@ -16,7 +16,11 @@ dependencies = [
     "seaborn",
     "tqdm",
     "scikit-learn",
+    "jupyterlab"
 ]
 
 [tool.hatch.envs.default.env-vars]
 PIP_EXTRA_INDEX_URL = "https://download.pytorch.org/whl/cu126"
+
+[tool.setuptools.packages.find]
+namespaces = false
