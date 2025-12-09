@@ -106,10 +106,11 @@ if __name__ == '__main__':
     num_hidden_layers = 6
     num_attention_heads = 3
     intermediate_size = 300
-    VAL_SIZE = 0.15
-    TEST_SIZE = 0.15
-    epochs=20
-    batch_size=50
+    val_size = 0.15
+    test_size = 0.15
+    epochs = 20
+    batch_size = 50
+    seed = 42
     training_path = Path(".")
 
     model = Model(
@@ -120,13 +121,17 @@ if __name__ == '__main__':
         intermediate_size=intermediate_size,
     )
 
-    dataset = Dataset.from_pandas(create_df_from_dataset())#.take(3) # Take a subset of 3 datapoints for testing purposes
+    dataset = Dataset.from_pandas(create_df_from_dataset())#.take(5) # Take a subset of N datapoints for testing purposes
 
-    dataset = dataset.train_test_split(test_size=TEST_SIZE)
+    dataset = dataset.train_test_split(test_size=test_size, seed=seed, shuffle=True)
 
     train_dataset = dataset['train']
     # also split for val set
-    train_dataset = train_dataset.train_test_split(test_size=(VAL_SIZE / (1 - TEST_SIZE)))
+    train_dataset = train_dataset.train_test_split(
+        test_size=(val_size / (1 - test_size)),
+        seed=seed,
+        shuffle=True
+    )
     
 
     val_dataset = train_dataset['test']
@@ -151,6 +156,9 @@ if __name__ == '__main__':
         "num_attention_heads": num_attention_heads,
         "intermediate_size": intermediate_size,       
         "epochs": epochs,
+        "seed": seed,
+        "test_size": test_size,
+        "val_size": val_size,
     }
     save_training_res(
         training_path=training_path,
