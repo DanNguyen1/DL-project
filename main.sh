@@ -21,4 +21,4 @@ module load cudnn/8.9.7.29-12-cuda12.6
 source .venv/bin/activate
 pip install -Ue .
 ## Run script
-python test.py
+python training.py

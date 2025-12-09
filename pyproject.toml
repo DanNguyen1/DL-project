@@ -16,7 +16,8 @@ dependencies = [
     "seaborn",
     "tqdm",
     "scikit-learn",
-    "jupyterlab"
+    "jupyterlab",
+    "ipywidgets"
 ]
 
 [tool.hatch.envs.default.env-vars]
