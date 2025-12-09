@@ -29,7 +29,7 @@ source venv/bin/activate
 
 4. Download packages
 ```bash
-python3 -m pip install -Ue .
+python3 -m pip install -r requirements.txt
 ```
 
 5. Download our dataset and move/extract it to the root directory

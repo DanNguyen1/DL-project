@@ -11,7 +11,6 @@ from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_sc
 from tqdm import tqdm
 from pathlib import Path
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def read_video_pyav(container):
     '''
@@ -78,7 +77,7 @@ def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=1)
             output = model(videos, audios).squeeze(-1)
 
 
-            target = torch.tensor(batch['label'], dtype=torch.float, device=DEVICE)
+            target = torch.tensor(batch['label'], dtype=torch.float)
 
             optimizer.zero_grad()
             loss = criterion(output, target)
@@ -111,7 +110,7 @@ if __name__ == '__main__':
     val_size = 0.15
     test_size = 0.15
     epochs = 20
-    batch_size = 50
+    batch_size = 32
     seed = 42
     training_path = Path(".")
 
