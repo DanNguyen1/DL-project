@@ -27,7 +27,7 @@ def read_video_pyav(container):
         frames.append(frame)
     return np.stack([x.to_ndarray(format="rgb24") for x in frames])
 
-def batchify(batch):
+def batchify(batch, sample_rate):
     videos, audios = [], []
     for i in range(len(batch['audio'])):
         audio, _ = librosa.load(batch['audio'][i], sr=sample_rate)
@@ -42,7 +42,7 @@ def batchify(batch):
 @torch.no_grad()
 def evaluate(model: torch.nn.Module, data):
     model.eval()
-    videos, audios = batchify(data)
+    videos, audios = batchify(batch=data, sample_rate=sample_rate)
 
     output = torch.round(torch.sigmoid(model(videos, audios)).squeeze(-1)).numpy()
 
@@ -72,7 +72,7 @@ def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=1)
         train_set = train_set.shuffle()
         batched_train = train_set.batch(batch_size=batch_size)
         for batch in tqdm(batched_train):
-            videos, audios = batchify(batch)
+            videos, audios = batchify(batch=batch, sample_rate=sample_rate)
 
             output = model(videos, audios).squeeze(-1)
 
