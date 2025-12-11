@@ -18,11 +18,11 @@ We highly recommend setting up [Python virtual environment](https://docs.python.
 cd DL-project
 ```
 
-2. Set up a virtual enviroment (OPTIONAL, BUT RECOMMENDED!)
+2. Set up a virtual environment (OPTIONAL, BUT RECOMMENDED!)
 ```bash
 python3 -m venv venv/
 ```
-3. Activate the virtual enviroment (OPTIONAL, BUT RECOMMENDED!)
+3. Activate the virtual environment (OPTIONAL, BUT RECOMMENDED!)
 ```bash
 source venv/bin/activate
 ```
@@ -37,14 +37,21 @@ Manually download the dataset [here](https://drive.google.com/drive/folders/1Gy0
 
 
 6. Run the code
-The bulk of our project is in test.py. You'll want to run that, but you can run any file in the repository.
+The bulk of our project is in `training.py`. You'll want to run that, but you can run any file in the repository.
 ```bash
-python3 test.py
+python3 training.py
+```
+
+7. Visualize the results
+To visualize the results, you can either run the `visualization.ipynb` notebook, or run the command below. The plots will be saved in the `fig` folder.
+
+``` bash
+python3 visualization.py
 ```
 
 NOTE: If you are on the CS GPU servers, you can restrict our code to run on a single GPU with the following environment variable:
 ```bash
-CUDA_VISIBLE_DEVICES=<GPU_INDEX> python3 test.py
+CUDA_VISIBLE_DEVICES=<GPU_INDEX> python3 training.py
 ```
 where you change <GPU_INDEX> to a certain GPU. You can check GPUs on the server by running:
 ```bash
@@ -52,17 +59,17 @@ nvidia-smi
 ```
 
 ### Files
-- dataset.py
+- `dataset.py`
 Utility file for parsing the files in our dataset, associating pairs of video and audio files with each other, and labelling them. Puts **ONLY** the audio and video **FILE NAMES** and labels into a Pandas dataframe for later processing.
 
-- ast_test.py
+- `ast_test.py`
 Initial testing file to test the capabilities of [Audio Spectrogram Transformer](https://huggingface.co/docs/transformers/en/model_doc/audio-spectrogram-transformer). Runs AST on a sample audio file from our dataset and produces an embedding.
 
-- vivit_test.py
+- `vivit_test.py`
 Initial testing file to test the capabilities of [Video Vision Transformer](https://huggingface.co/docs/transformers/en/model_doc/vivit). Runs ViViT on a samplpe video file from our dataset and produces an embedding.
 
-- model.py
+- `model.py`
 Our main model. Sets up a torch-based module for learning video-audio alignment through pairs of video and audio files. Does not perform initial vectorization of video and audio data, but will perform AST and ViViT specific processing before passing it through each individual model. The forward method will produce video and audio embeddings through AST and ViViT, respectively, concatenate the embedding pairs, and pass the concatenated embeddings through a feedforward network to produce a binary classification.
 
-- test.py
-The main testing file for the model. This file will run the setup for the model and the training loop to train the model on the video-audio alignment detection task. It will first perform a training, validaiton, and test split of the dataset. The main training loop will batch the example pairs every epoch and train the model in mini-batches. Additionally, this file will evaluate the model on accuracy, precision, recall, and F1 on the validation set every epoch and perform a final evaluation on the test set after training. You can define the basic hyperparameters in the main function of the file, as well as other training parameters such as training, test, and validation set ratios, number of epochs, and batch sizes.
+- `training.py`
+The main file to train the model. This file will run the setup for the model and the training loop to train the model on the video-audio alignment detection task. It will first perform a training, validation, and test split of the dataset. The main training loop will batch the example pairs every epoch and train the model in mini-batches. Additionally, this file will evaluate the model on accuracy, precision, recall, and F1 on the validation set every epoch and perform a final evaluation on the test set after training. You can define the basic hyperparameters in the main function of the file, as well as other training parameters such as training, test, and validation set ratios, number of epochs, and batch sizes.

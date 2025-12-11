@@ -16,7 +16,17 @@ dependencies = [
     "seaborn",
     "tqdm",
     "scikit-learn",
+    "jupyterlab",
+    "ipywidgets"
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.hatch.envs.default.env-vars]
 PIP_EXTRA_INDEX_URL = "https://download.pytorch.org/whl/cu126"
+# PIP_INDEX_URL = "https://download.pytorch.org/whl/cu126"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]

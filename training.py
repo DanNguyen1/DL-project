@@ -9,6 +9,8 @@ import librosa
 import av
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
 from tqdm import tqdm
+from pathlib import Path
+
 
 def read_video_pyav(container):
     '''
@@ -25,7 +27,7 @@ def read_video_pyav(container):
         frames.append(frame)
     return np.stack([x.to_ndarray(format="rgb24") for x in frames])
 
-def batchify(batch):
+def batchify(batch, sample_rate):
     videos, audios = [], []
     for i in range(len(batch['audio'])):
         audio, _ = librosa.load(batch['audio'][i], sr=sample_rate)
@@ -40,7 +42,7 @@ def batchify(batch):
 @torch.no_grad()
 def evaluate(model: torch.nn.Module, data):
     model.eval()
-    videos, audios = batchify(data)
+    videos, audios = batchify(batch=data, sample_rate=sample_rate)
 
     output = torch.round(torch.sigmoid(model(videos, audios)).squeeze(-1)).numpy()
 
@@ -52,20 +54,25 @@ def evaluate(model: torch.nn.Module, data):
     f1 = f1_score(target, output)
 
     print(f"accuracy: {accuracy}, precision: {precision}, recall: {recall}, f1: {f1}")
+    return accuracy, f1
 
 
 
 def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=1):
     criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
+    model.train()
+
+    accuracies = np.ones(epochs) * np.nan
+    f1s = np.ones(epochs) * np.nan
+    losses = np.zeros(epochs)
 
     for epoch in range(epochs):
-        print(f"epoch {epoch}:")
-        model.train()
+        print(f"Epoch {epoch + 1}/{epochs}")
         train_set = train_set.shuffle()
         batched_train = train_set.batch(batch_size=batch_size)
         for batch in tqdm(batched_train):
-            videos, audios = batchify(batch)
+            videos, audios = batchify(batch=batch, sample_rate=sample_rate)
 
             output = model(videos, audios).squeeze(-1)
 
@@ -74,10 +81,45 @@ def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=1)
 
             optimizer.zero_grad()
             loss = criterion(output, target)
+            losses[epoch] += loss.item()
             loss.backward()
             optimizer.step()
-        evaluate(model, val_set)
+        print(f"Loss: {losses[epoch]}")
+        accuracy, f1 = evaluate(model, val_set)
+        accuracies[epoch] = accuracy
+        f1s[epoch] = f1
 
+        # Save results
+        res_dict = {
+            "accuracies": accuracies,
+            "f1s": f1s,
+            "losses": losses,
+            "num_frames": num_frames,
+            "sample_rate": sample_rate,
+            "num_hidden_layers": num_hidden_layers,
+            "num_attention_heads": num_attention_heads,
+            "intermediate_size": intermediate_size,       
+            "epochs": epochs,
+            "seed": seed,
+            "test_size": test_size,
+            "val_size": val_size,
+        }
+        save_training_res(
+            training_path=training_path,
+            model_state_dict=model.state_dict(),
+            res_dict=res_dict
+        )
+    return accuracies, f1s, losses
+
+
+def save_training_res(training_path, model_state_dict, res_dict):
+    """Save training results to disk."""
+    model_path = training_path / "model_checkpoint.pt"
+    torch.save(model_state_dict, model_path)
+    print(f"Model checkpoint saved at: `{model_path.absolute()}`")
+    results_path = training_path / "res.tar"
+    torch.save(res_dict, results_path)
+    print(f"Training results saved at: `{results_path.absolute()}`")
 
 
 if __name__ == '__main__':
@@ -86,6 +128,12 @@ if __name__ == '__main__':
     num_hidden_layers = 6
     num_attention_heads = 3
     intermediate_size = 300
+    val_size = 0.15
+    test_size = 0.15
+    epochs = 20
+    batch_size = 32
+    seed = 42
+    training_path = Path(".")
 
     model = Model(
         num_frames=num_frames,
@@ -95,23 +143,30 @@ if __name__ == '__main__':
         intermediate_size=intermediate_size,
     )
 
-    VAL_SIZE = 0.15
-    TEST_SIZE = 0.15
+    dataset = Dataset.from_pandas(create_df_from_dataset())#.take(batch_size) # Take a subset of N datapoints for testing purposes
 
-    dataset = Dataset.from_pandas(create_df_from_dataset())
-
-    dataset = dataset.train_test_split(test_size=TEST_SIZE)
+    dataset = dataset.train_test_split(test_size=test_size, seed=seed, shuffle=True)
 
     train_dataset = dataset['train']
     # also split for val set
-    train_dataset = train_dataset.train_test_split(test_size=(VAL_SIZE / (1 - TEST_SIZE)))
+    train_dataset = train_dataset.train_test_split(
+        test_size=(val_size / (1 - test_size)),
+        seed=seed,
+        shuffle=True
+    )
     
 
     val_dataset = train_dataset['test']
     train_dataset = train_dataset['train']
     test_dataset = dataset['test']    
 
-    train_loop(model, train_set=train_dataset, val_set=val_dataset, epochs=20, batch_size=50)
+    accuracies, f1s, losses = train_loop(
+        model=model,
+        train_set=train_dataset,
+        val_set=val_dataset,
+        epochs=epochs,
+        batch_size=batch_size
+    )
 
-    print("test results:")
+    print("Test results:")
     evaluate(model, test_dataset)
