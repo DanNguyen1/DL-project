@@ -44,6 +44,7 @@ python3 training.py
 
 7. Visualize the results
 To visualize the results, you can either run the `visualization.ipynb` notebook, or run the command below. The plots will be saved in the `fig` folder.
+The model checkpoint and results of training are available here: https://drive.google.com/drive/folders/1Gy04FZZr4mD0OiqadZck5LINrpo88TaY?usp=drive_link.
 
 ``` bash
 python3 visualization.py
