@@ -42,6 +42,13 @@ The bulk of our project is in `training.py`. You'll want to run that, but you ca
 python3 training.py
 ```
 
+7. Visualize the results
+To visualize the results, you can either run the `visualization.ipynb` notebook, or run the command below. The plots will be saved in the `fig` folder.
+
+``` bash
+python3 visualization.py
+```
+
 NOTE: If you are on the CS GPU servers, you can restrict our code to run on a single GPU with the following environment variable:
 ```bash
 CUDA_VISIBLE_DEVICES=<GPU_INDEX> python3 training.py
