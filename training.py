@@ -88,7 +88,28 @@ def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=1)
         accuracy, f1 = evaluate(model, val_set)
         accuracies[epoch] = accuracy
         f1s[epoch] = f1
-    return model.state_dict(), accuracies, f1s, losses
+
+        # Save results
+        res_dict = {
+            "accuracies": accuracies,
+            "f1s": f1s,
+            "losses": losses,
+            "num_frames": num_frames,
+            "sample_rate": sample_rate,
+            "num_hidden_layers": num_hidden_layers,
+            "num_attention_heads": num_attention_heads,
+            "intermediate_size": intermediate_size,       
+            "epochs": epochs,
+            "seed": seed,
+            "test_size": test_size,
+            "val_size": val_size,
+        }
+        save_training_res(
+            training_path=training_path,
+            model_state_dict=model.state_dict(),
+            res_dict=res_dict
+        )
+    return accuracies, f1s, losses
 
 
 def save_training_res(training_path, model_state_dict, res_dict):
@@ -139,32 +160,12 @@ if __name__ == '__main__':
     train_dataset = train_dataset['train']
     test_dataset = dataset['test']    
 
-    model_state_dict, accuracies, f1s, losses = train_loop(
+    accuracies, f1s, losses = train_loop(
         model=model,
         train_set=train_dataset,
         val_set=val_dataset,
         epochs=epochs,
         batch_size=batch_size
-    )
-
-    res_dict = {
-        "accuracies": accuracies,
-        "f1s": f1s,
-        "losses": losses,
-        "num_frames": num_frames,
-        "sample_rate": sample_rate,
-        "num_hidden_layers": num_hidden_layers,
-        "num_attention_heads": num_attention_heads,
-        "intermediate_size": intermediate_size,       
-        "epochs": epochs,
-        "seed": seed,
-        "test_size": test_size,
-        "val_size": val_size,
-    }
-    save_training_res(
-        training_path=training_path,
-        model_state_dict=model_state_dict,
-        res_dict=res_dict
     )
 
     print("Test results:")
