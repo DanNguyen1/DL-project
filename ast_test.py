@@ -1,5 +1,4 @@
 import librosa
-import numpy as np
 import os
 
 from transformers import AutoFeatureExtractor, ASTConfig, ASTModel

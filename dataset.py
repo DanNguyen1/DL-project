@@ -1,6 +1,5 @@
 import os
 import re
-import numpy as np
 import pandas as pd
 
 AUDIO_DIR = os.getcwd() + "/datasets/processed_dataset_4secs/processed_audio_4secs"

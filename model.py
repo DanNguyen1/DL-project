@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import av
 from transformers import AutoFeatureExtractor, ASTConfig, ASTModel
 from transformers import VivitConfig, VivitImageProcessor, VivitModel
 

@@ -1,43 +1,16 @@
 from model import Model
 from datasets import Dataset
 from dataset import create_df_from_dataset
+from visualization import plot_res
+from utils import batchify
 import numpy as np
 import torch
 import torch.optim as optim
 import torch.nn as nn
-import librosa
-import av
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
 from tqdm import tqdm
 from pathlib import Path
 
-
-def read_video_pyav(container):
-    '''
-    Decode the video with PyAV decoder.
-    Args:
-        container (`av.container.input.InputContainer`): PyAV container.
-        indices (`list[int]`): List of frame indices to decode.
-    Returns:
-        result (np.ndarray): np array of decoded frames of shape (num_frames, height, width, 3).
-    '''
-    frames = []
-    container.seek(0)
-    for frame in container.decode(video=0):
-        frames.append(frame)
-    return np.stack([x.to_ndarray(format="rgb24") for x in frames])
-
-def batchify(batch, sample_rate):
-    videos, audios = [], []
-    for i in range(len(batch['audio'])):
-        audio, _ = librosa.load(batch['audio'][i], sr=sample_rate)
-        audios.append(audio)
-
-        container = av.open(batch['video'][i])
-        video = read_video_pyav(container)
-        videos.append(video)
-    
-    return videos, audios
 
 @torch.no_grad()
 def evaluate(model: torch.nn.Module, data):
@@ -63,8 +36,10 @@ def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=1)
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
     model.train()
 
-    accuracies = np.ones(epochs) * np.nan
-    f1s = np.ones(epochs) * np.nan
+    accuracies_train = np.ones(epochs) * np.nan
+    accuracies_val = np.ones(epochs) * np.nan
+    f1s_train = np.ones(epochs) * np.nan
+    f1s_val = np.ones(epochs) * np.nan
     losses = np.zeros(epochs)
 
     for epoch in range(epochs):
@@ -85,14 +60,19 @@ def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=1)
             loss.backward()
             optimizer.step()
         print(f"Loss: {losses[epoch]}")
-        accuracy, f1 = evaluate(model, val_set)
-        accuracies[epoch] = accuracy
-        f1s[epoch] = f1
+        accuracy_train, f1_train = evaluate(model=model, data=train_set)
+        accuracy_val, f1_val = evaluate(model=model, data=val_set)
+        accuracies_train[epoch] = accuracy_train
+        accuracies_val[epoch] = accuracy_val
+        f1s_train[epoch] = f1_train
+        f1s_val[epoch] = f1_val
 
         # Save results
         res_dict = {
-            "accuracies": accuracies,
-            "f1s": f1s,
+            "accuracies_train": accuracies_train,
+            "accuracies_val": accuracies_val,
+            "f1s_train": f1s_train,
+            "f1s_val": f1s_val,
             "losses": losses,
             "num_frames": num_frames,
             "sample_rate": sample_rate,
@@ -109,7 +89,6 @@ def train_loop(model: torch.nn.Module, train_set, val_set, epochs, batch_size=1)
             model_state_dict=model.state_dict(),
             res_dict=res_dict
         )
-    return accuracies, f1s, losses
 
 
 def save_training_res(training_path, model_state_dict, res_dict):
@@ -160,7 +139,7 @@ if __name__ == '__main__':
     train_dataset = train_dataset['train']
     test_dataset = dataset['test']    
 
-    accuracies, f1s, losses = train_loop(
+    train_loop(
         model=model,
         train_set=train_dataset,
         val_set=val_dataset,
@@ -170,3 +149,4 @@ if __name__ == '__main__':
 
     print("Test results:")
     evaluate(model, test_dataset)
+    plot_res()
