@@ -37,7 +37,7 @@ def plot_res():
     epochs = np.arange(res_dict["epochs"])
 
     # ## Recreate original dataset
-    dataset = Dataset.from_pandas(create_df_from_dataset()).take(10)  # Take a subset of N datapoints for testing purposes
+    dataset = Dataset.from_pandas(create_df_from_dataset())#.take(10)  # Take a subset of N datapoints for testing purposes
     dataset = dataset.train_test_split(
         test_size=res_dict["test_size"], seed=res_dict["seed"], shuffle=True
     )
