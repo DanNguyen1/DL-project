@@ -1,4 +1,7 @@
 # COMP.5530 Deep Learning Project
+## John Brann, Dan Nguyen, Andrea Pierré
+
+--------------------------------------------------------------------------------
 
 ## Submission items
 - Presentation file: `DL_COMP_5530_project_report.pdf`
