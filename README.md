@@ -1,5 +1,9 @@
 # COMP.5530 Deep Learning Project
 
+## Submission items
+- Presentation file: `DL_COMP_5530_project_report.pdf`
+- Report file: `Deep Learning Final presentation.pdf`
+
 ## Original Dataset
 - [Paper](https://doi.org/10.48550/arXiv.2212.01651), [Download](https://slobodan.ucg.ac.me/science/vs13/)
 
